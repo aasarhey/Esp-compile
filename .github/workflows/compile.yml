@@ -1,0 +1,33 @@
+name: Compile ESP32-CAM Firmware
+
+on:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Arduino CLI
+        uses: arduino/setup-arduino-cli@v2
+
+      - name: Install ESP32 Platform
+        run: |
+          arduino-cli core update-index
+          arduino-cli core install esp32:esp32@2.0.14 --additional-urls https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+
+      - name: Compile Sketch
+        run: |
+          # Compilează proiectul folosind schema de partiții Huge APP (3MB)
+          arduino-cli compile --fqbn esp32:esp32:esp32cam:PartitionScheme=huge_app --output-dir ./build ./esp32_cam
+
+      - name: Upload Compiled Binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-bin
+          path: ./build/*.bin
+          
